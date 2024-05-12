@@ -1,6 +1,7 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class Node {
@@ -92,6 +93,7 @@ public class Node {
         }
     }
 
+
     public boolean isBoardSolved() {
         for (int i = 0; i < this.gameBoard.size() - 1; i++) {
             if (this.gameBoard.get(i) != i + 1) {
@@ -102,10 +104,10 @@ public class Node {
     }
 
     public ArrayList<Integer> arrayListDeepCopy(ArrayList<Integer> originalList) {
-        ArrayList<Integer> deepCopy = new ArrayList<>();
-        for (int i = 0; i < originalList.size(); i++) {
-            deepCopy.add(originalList.get(i));
-        }
+        ArrayList<Integer> deepCopy = new ArrayList<>(originalList);
+//        for (int i = 0; i < originalList.size(); i++) {
+//            deepCopy.add(originalList.get(i));
+//        }
         return deepCopy;
     }
     // Heurestics
@@ -120,7 +122,7 @@ public class Node {
                 cost += Math.abs(row - targetRow) + Math.abs(column - targetColumn);
             }
         }
-        return cost;
+        return cost + this.depth;
     }
     public int getHammingDistanceCost(){
         int cost = 0;
@@ -129,7 +131,7 @@ public class Node {
                 cost++;
             }
         }
-        return cost;
+        return cost + this.depth;
     }
 
     // Getters and Setters
@@ -171,5 +173,9 @@ public class Node {
 
     public char getDirectionLetter() {
         return directionLetter;
+    }
+
+    public List<Node> getChildren() {
+        return children;
     }
 }

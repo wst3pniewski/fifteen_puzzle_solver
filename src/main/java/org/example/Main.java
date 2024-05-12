@@ -23,7 +23,7 @@ public class Main {
         // gameboard features
         int rows = 0;
         int columns = 0;
-        ArrayList<Integer> numbers = new ArrayList<>();
+        ArrayList<Integer> numbers = new ArrayList<>(16);
         char[] movesOrder;
         List<Character> solution = new ArrayList<>();
         // stats
@@ -62,7 +62,8 @@ public class Main {
                 movesOrder = algorithmOpt.toCharArray();
                 DFS dfs = new DFS(movesOrder);
                 stopWatch.start();
-                dfs.startDFS(rootNode);
+//                dfs.startDFS(rootNode);
+                dfs.startDFSIterative(rootNode);
                 stopWatch.stop();
                 executionTime = df.format((float) stopWatch.getNanoTime() / 1e6);
                 processedStates = dfs.getProcessedCount();
@@ -72,6 +73,15 @@ public class Main {
                 break;
             case "astr":
                 String heurestic = algorithmOpt;
+                AStar aStar = new AStar(heurestic);
+                stopWatch.start();
+                aStar.startAStar(rootNode);
+                stopWatch.stop();
+                executionTime = df.format((float) stopWatch.getNanoTime() / 1e6);
+                processedStates = aStar.getProcessedCount();
+                visitedStates = aStar.getVisitedCount();
+                depth = aStar.getSolvedBoard().getDepth();
+                solution = aStar.getMoves();
                 System.out.println("astr");
                 break;
             default:
