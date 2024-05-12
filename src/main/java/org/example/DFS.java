@@ -38,25 +38,31 @@ public class DFS {
     }
 
     private void dfsIterative(Node node){
-        LinkedList<Node> stack = new LinkedList<>();
-        stack.add(node);
-        while (!stack.isEmpty()){
-            Node currentNode = stack.removeLast();
+        LinkedList<Node> toProcessNodes = new LinkedList<>();
+        toProcessNodes.add(node);
+        while (!toProcessNodes.isEmpty()){
+            Node currentNode = toProcessNodes.removeLast();
             processedCount++;
             visitedCount++;
             if (currentNode.getDepth() >= this.maxDepth) {
-                currentNode = stack.removeFirst();
-//                return;
-            }
-            if (currentNode.isBoardSolved()) {
-                this.solvedBoard = currentNode;
-                findTheSolvingPath(currentNode);
-                solved = true;
-                return;
-            }
-            currentNode.createChildrenInOrder(movesOrder);
-            for (int i = 0; i < currentNode.getChildrenCount(); i++) {
-                stack.add(currentNode.getChildrenByIndex(i));
+                currentNode = toProcessNodes.removeLast();
+                if (currentNode.isBoardSolved()) {
+                    this.solvedBoard = currentNode;
+                    findTheSolvingPath(currentNode);
+                    solved = true;
+                    return;
+                }
+            } else {
+                if (currentNode.isBoardSolved()) {
+                    this.solvedBoard = currentNode;
+                    findTheSolvingPath(currentNode);
+                    solved = true;
+                    return;
+                }
+                currentNode.createChildrenInOrder(movesOrder);
+                for (int i = 0; i < currentNode.getChildrenCount(); i++) {
+                    toProcessNodes.add(currentNode.getChildrenByIndex(i));
+                }
             }
         }
     }
