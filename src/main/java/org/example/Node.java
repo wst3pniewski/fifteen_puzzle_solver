@@ -1,8 +1,8 @@
 package org.example;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public class Node {
 
@@ -15,6 +15,7 @@ public class Node {
     private ArrayList<Integer> gameBoard;
     private List<Node> children;
     private Node parent;
+    public Step lastStep;
 
     // Constructors
     public Node(ArrayList<Integer> gameBoard, int columns, int rows) {
@@ -28,7 +29,7 @@ public class Node {
 
     // Tiles movement
     public void moveTile(int oldPosition, int newPosition, char directionLetter) {
-        ArrayList<Integer> newGameBoard = this.arrayListDeepCopy(this.gameBoard);
+        ArrayList<Integer> newGameBoard = this.arrayListCopy(this.gameBoard);
         newGameBoard.set(newPosition, this.gameBoard.get(oldPosition));
         newGameBoard.set(oldPosition, this.gameBoard.get(newPosition));
         Node childNode = new Node(newGameBoard, this.columns, this.rows);
@@ -39,19 +40,19 @@ public class Node {
     }
 
     public void moveTileLeft(int movedElementIndex) {
-        if (movedElementIndex % 4 > 0) {
+        if (movedElementIndex % this.columns > 0) {
             this.moveTile(movedElementIndex, movedElementIndex - 1, 'L');
         }
     }
 
     public void moveTileRight(int movedElementIndex) {
-        if (movedElementIndex % 4 < this.columns - 1) {
+        if (movedElementIndex % this.columns < this.columns - 1) {
             this.moveTile(movedElementIndex, movedElementIndex + 1, 'R');
         }
     }
 
     public void moveTileUp(int movedElementIndex) {
-        if (movedElementIndex - this.columns > 0) {
+        if (movedElementIndex - this.columns >= 0) {
             this.moveTile(movedElementIndex, movedElementIndex - this.columns, 'U');
         }
     }
@@ -93,7 +94,6 @@ public class Node {
         }
     }
 
-
     public boolean isBoardSolved() {
         for (int i = 0; i < this.gameBoard.size() - 1; i++) {
             if (this.gameBoard.get(i) != i + 1) {
@@ -103,15 +103,109 @@ public class Node {
         return true;
     }
 
-    public ArrayList<Integer> arrayListDeepCopy(ArrayList<Integer> originalList) {
-        ArrayList<Integer> deepCopy = new ArrayList<>(originalList);
-//        for (int i = 0; i < originalList.size(); i++) {
-//            deepCopy.add(originalList.get(i));
-//        }
-        return deepCopy;
+    public ArrayList<Integer> arrayListCopy(ArrayList<Integer> originalList) {
+        ArrayList<Integer> arrCopy = new ArrayList<>(originalList);
+        return arrCopy;
     }
+
+    public boolean makeStep(char directionLetter) {
+        switch (directionLetter) {
+            case 'L':
+                if (emptyTileIndex % this.columns > 0) {
+                    int tmp = this.gameBoard.get(emptyTileIndex - 1);
+                    this.gameBoard.set(emptyTileIndex - 1, 0);
+                    this.gameBoard.set(emptyTileIndex, tmp);
+                    this.emptyTileIndex = emptyTileIndex - 1;
+                } else {
+                    return false;
+                }
+                break;
+            case 'R':
+                if (emptyTileIndex % this.columns < this.columns - 1) {
+                    int tmp = this.gameBoard.get(emptyTileIndex + 1);
+                    this.gameBoard.set(emptyTileIndex + 1, 0);
+                    this.gameBoard.set(emptyTileIndex, tmp);
+                    this.emptyTileIndex = emptyTileIndex + 1;
+                } else {
+                    return false;
+                }
+                break;
+            case 'U':
+                if (emptyTileIndex - this.columns > 0) {
+                    int tmp = this.gameBoard.get(emptyTileIndex - this.columns);
+                    this.gameBoard.set(emptyTileIndex - this.columns, 0);
+                    this.gameBoard.set(emptyTileIndex, tmp);
+                    this.emptyTileIndex = emptyTileIndex - this.columns;
+                } else {
+                    return false;
+                }
+                break;
+            case 'D':
+                if (emptyTileIndex + this.columns < this.gameBoard.size()) {
+                    int tmp = this.gameBoard.get(emptyTileIndex + this.columns);
+                    this.gameBoard.set(emptyTileIndex + this.columns, 0);
+                    this.gameBoard.set(emptyTileIndex, tmp);
+                    this.emptyTileIndex = emptyTileIndex + this.columns;
+                } else {
+                    return false;
+                }
+                break;
+        }
+        this.depth++;
+        Step newStep = new Step();
+        newStep.stepBefore = this.lastStep;
+        newStep.direction = directionLetter;
+        this.lastStep = newStep;
+        return true;
+    }
+
+    public void undoStep() {
+        if (this.lastStep == null) {
+            return;
+        }
+        int tmp;
+        switch (this.lastStep.direction) {
+            case 'R':
+                tmp = this.gameBoard.get(emptyTileIndex - 1);
+                this.gameBoard.set(emptyTileIndex - 1, 0);
+                this.gameBoard.set(emptyTileIndex, tmp);
+                this.emptyTileIndex = emptyTileIndex - 1;
+                break;
+            case 'L':
+                tmp = this.gameBoard.get(emptyTileIndex + 1);
+                this.gameBoard.set(emptyTileIndex + 1, 0);
+                this.gameBoard.set(emptyTileIndex, tmp);
+                this.emptyTileIndex = emptyTileIndex + 1;
+                break;
+            case 'U':
+                tmp = this.gameBoard.get(emptyTileIndex + this.columns);
+                this.gameBoard.set(emptyTileIndex + this.columns, 0);
+                this.gameBoard.set(emptyTileIndex, tmp);
+                this.emptyTileIndex = emptyTileIndex + this.columns;
+                break;
+            case 'D':
+                tmp = this.gameBoard.get(emptyTileIndex - this.columns);
+                this.gameBoard.set(emptyTileIndex - this.columns, 0);
+                this.gameBoard.set(emptyTileIndex, tmp);
+                this.emptyTileIndex = emptyTileIndex - this.columns;
+                break;
+        }
+        this.depth--;
+        this.lastStep = this.lastStep.stepBefore;
+    }
+
+    public ArrayList<Character> getSteps() {
+        ArrayList<Character> steps = new ArrayList<>();
+        Step currentStep = this.lastStep;
+        while (currentStep != null) {
+            steps.add(currentStep.direction);
+            currentStep = currentStep.stepBefore;
+        }
+        return steps;
+    }
+
     // Heurestics
-    public int getManhattanDistanceCost(){
+    public int getManhattanDistanceCost() {
         int cost = 0;
         for (int i = 0; i < this.gameBoard.size(); i++) {
             if (this.gameBoard.get(i) != 0) {
@@ -124,7 +218,8 @@ public class Node {
         }
         return cost + this.depth;
     }
-    public int getHammingDistanceCost(){
+
+    public int getHammingDistanceCost() {
         int cost = 0;
         for (int i = 0; i < this.gameBoard.size(); i++) {
             if (this.gameBoard.get(i) != 0 && this.gameBoard.get(i) != i + 1) {
@@ -135,7 +230,6 @@ public class Node {
     }
 
     // Getters and Setters
-
     public int getChildrenCount() {
         return children.size();
     }
@@ -176,6 +270,8 @@ public class Node {
     }
 
     public List<Node> getChildren() {
+        ArrayList<Node> children = new ArrayList<>(this.children);
+        this.children = null;
         return children;
     }
 }

@@ -3,6 +3,7 @@ package org.example;
 import java.util.*;
 
 public class BFS {
+
     private final char[] movesOrder;
     private Node solvedBoard;
     private List<Character> moves;
@@ -24,11 +25,8 @@ public class BFS {
 
     public void startBFS(Node root) {
         Queue<Node> queue = new LinkedList<>();
-        List<Node> visited = new ArrayList<>();
-        List<Node> processedNodes = new ArrayList<>();
-
+        ArrayList<Node> children;
         queue.add(root);
-        visited.add(root);
         if (root.isBoardSolved()) {
             this.solvedBoard = root;
             findTheSolvingPath(root);
@@ -39,23 +37,28 @@ public class BFS {
 
         while (!queue.isEmpty()) {
             Node processedNode = queue.poll();
-            processedNodes.add(processedNode);
-
+            processedCount++;
             processedNode.createChildrenInOrder(movesOrder);
-            for (int i = 0; i < processedNode.getChildrenCount(); i++) {
-                if (!visited.contains(processedNode.getChildrenByIndex(i))) {
-                    visited.add(processedNode.getChildrenByIndex(i));
-                    if (processedNode.getChildrenByIndex(i).isBoardSolved()) {
-                        this.solvedBoard = processedNode.getChildrenByIndex(i);
-                        findTheSolvingPath(processedNode.getChildrenByIndex(i));
-                        visitedCount = visited.size();
-                        processedCount = processedNodes.size();
-                        return;
-                    }
-                    queue.add(processedNode.getChildrenByIndex(i));
+            children = new ArrayList<>(processedNode.getChildren());
+            for (Node child : children){
+                visitedCount++;
+                if (child.isBoardSolved()) {
+                    this.solvedBoard = child;
+                    findTheSolvingPath(child);
+                    return;
                 }
-
+                processedNode = null;
+                queue.add(child);
             }
+//            for (int i = 0; i < processedNode.getChildrenCount(); i++) {
+//                visitedCount++;
+//                if (processedNode.getChildrenByIndex(i).isBoardSolved()) {
+//                    this.solvedBoard = processedNode.getChildrenByIndex(i);
+//                    findTheSolvingPath(processedNode.getChildrenByIndex(i));
+//                    return;
+//                }
+//                queue.add(processedNode.getChildrenByIndex(i));
+//            }
         }
     }
 

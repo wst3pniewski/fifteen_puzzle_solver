@@ -20,6 +20,7 @@ public class Main {
         String puzzleFile = args[2];
         String solutionFile = args[3];
         String statsFile = args[4];
+        boolean validSolution = false;
         // gameboard features
         int rows = 0;
         int columns = 0;
@@ -57,23 +58,29 @@ public class Main {
                 visitedStates = bfs.getVisitedCount();
                 depth = bfs.getSolvedBoard().getDepth();
                 solution = bfs.getMoves();
+                validSolution = true;
                 break;
             case "dfs":
                 movesOrder = algorithmOpt.toCharArray();
                 DFS dfs = new DFS(movesOrder);
                 stopWatch.start();
 //                dfs.startDFS(rootNode);
-                dfs.startDFSIterative(rootNode);
+//                dfs.startDFSIterative(rootNode);
+                dfs.startDFS2(rootNode);
                 stopWatch.stop();
                 executionTime = df.format((float) stopWatch.getNanoTime() / 1e6);
                 processedStates = dfs.getProcessedCount();
                 visitedStates = dfs.getVisitedCount();
-                depth = dfs.getSolvedBoard().getDepth();
-                solution = dfs.getMoves();
+                depth = dfs.getMaxDepth();
+                if (dfs.getSolvedBoard() != null) {
+                    depth = dfs.getSolvedBoard().getDepth();
+//                    solution = dfs.getMovesToSolution();
+                    solution = dfs.getSolvedBoard().getSteps();
+                    validSolution = true;
+                }
                 break;
             case "astr":
-                String heurestic = algorithmOpt;
-                AStar aStar = new AStar(heurestic);
+                AStar aStar = new AStar(algorithmOpt);
                 stopWatch.start();
                 aStar.startAStar(rootNode);
                 stopWatch.stop();
@@ -82,7 +89,12 @@ public class Main {
                 visitedStates = aStar.getVisitedCount();
                 depth = aStar.getSolvedBoard().getDepth();
                 solution = aStar.getMoves();
-                System.out.println("astr");
+                visitedStates = aStar.getVisitedCount();
+                if (aStar.getSolvedBoard() != null) {
+                    depth = aStar.getSolvedBoard().getDepth();
+                    solution = aStar.getMoves();
+                    validSolution = true;
+                }
                 break;
             default:
                 throw new IllegalArgumentException("Podano nieprawidlowy algorytm: " + algorithm);
@@ -90,17 +102,25 @@ public class Main {
 
         // save solution
         try (FileWriter fileWriter = new FileWriter(solutionFile)) {
-            fileWriter.write(String.valueOf(solution.size()));
-            fileWriter.append('\n');
-            for (char c : solution) {
-                fileWriter.append(c);
+            if (validSolution) {
+                fileWriter.write(String.valueOf(solution.size()));
+                fileWriter.append('\n');
+                for (char c : solution) {
+                    fileWriter.append(c);
+                }
+            } else {
+                fileWriter.write("-1");
             }
         } catch (IOException e) {
             System.err.println("Error writing to the file: " + e.getMessage());
         }
         // save stats
         try (FileWriter fileWriter = new FileWriter(statsFile)) {
-            fileWriter.write(String.valueOf(solution.size()));
+            if (validSolution) {
+                fileWriter.write(String.valueOf(solution.size()));
+            } else {
+                fileWriter.write("-1");
+            }
             fileWriter.append('\n');
             fileWriter.write(String.valueOf(visitedStates));
             fileWriter.append('\n');
@@ -109,7 +129,6 @@ public class Main {
             fileWriter.write(String.valueOf(depth));
             fileWriter.append('\n');
             fileWriter.write(executionTime);
-            fileWriter.append(" ms");
         } catch (IOException e) {
             System.err.println("Error writing to the file: " + e.getMessage());
         }

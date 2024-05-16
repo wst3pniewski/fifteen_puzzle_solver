@@ -8,7 +8,7 @@ import java.util.PriorityQueue;
 public class AStar {
     private Node solvedBoard;
     private List<Character> moves;
-    private String heuristic;
+    private final String heuristic;
     private int visitedCount;
     private int processedCount;
 
@@ -51,13 +51,13 @@ public class AStar {
             currentNode.createChildren();
             for (Node child : currentNode.getChildren()) {
                 this.visitedCount++;
-                if (child.isBoardSolved()) {
-                    solvedBoard = child;
-                    findTheSolvingPath(solvedBoard);
-                    return;
-                } else {
+//                if (child.isBoardSolved()) {
+//                    solvedBoard = child;
+//                    findTheSolvingPath(solvedBoard);
+//                    return;
+//                } else {
                     helperList.add(child);
-                }
+//                }
             }
             openList.add(helperList.poll());
             closedList.add(currentNode);
